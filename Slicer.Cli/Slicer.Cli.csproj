@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Slicer.Engine.Processes\Slicer.Engine.Processes.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Utils\Slicer.Engine.Common.csproj" />
+    <ProjectReference Include="..\Slicer.Engine\Slicer.Engine.csproj" />
+  </ItemGroup>
+
+</Project>

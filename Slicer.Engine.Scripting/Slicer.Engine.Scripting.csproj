@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>7.2</LangVersion>
+    <Version>2.3.1</Version>
+    <Description>Squalr engine component for scripting. This library exposes a set of APIs to allow for C# scripts to leverage the other Squalr engine components.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CS-Script.Core" Version="1.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Slicer.Engine.Architecture\Slicer.Engine.Architecture.csproj" />
+    <ProjectReference Include="..\Squalr.Engine.Debugger\Slicer.Engine.Debuggers.csproj" />
+    <ProjectReference Include="..\Slicer.Engine.Memory\Slicer.Engine.Memory.csproj" />
+    <ProjectReference Include="..\Slicer.Engine.Projects\Slicer.Engine.Projects.csproj" />
+    <ProjectReference Include="..\Slicer.Engine.Scanning\Slicer.Engine.Scanning.csproj" />
+    <ProjectReference Include="..\Slicer.Engine\Slicer.Engine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>

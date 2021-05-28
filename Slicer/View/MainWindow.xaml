@@ -1,0 +1,1025 @@
+﻿<shell:Window
+    x:Class="Slicer.View.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Controls="clr-namespace:Slicer.View.Controls"
+    xmlns:avalonDock="clr-namespace:AvalonDock;assembly=AvalonDock"
+    xmlns:content="clr-namespace:Slicer.Content"
+    xmlns:converters="clr-namespace:Slicer.Source.Mvvm.Converters"
+    xmlns:coreView="clr-namespace:Slicer.View"
+    xmlns:docking="clr-namespace:Slicer.Source.Docking"
+    xmlns:intr="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:layout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
+    xmlns:layoutControls="clr-namespace:AvalonDock.Controls;assembly=AvalonDock"
+    xmlns:shell="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:types="clr-namespace:Slicer.Engine.Common.DataTypes;assembly=Slicer.Engine.Common"
+    xmlns:view="clr-namespace:Slicer.View"
+    x:Name="SqualrWindow"
+    Title="Slicer"
+    Width="1280"
+    Height="840"
+    x:ClassModifier="public"
+    AllowsTransparency="False"
+    DataContext="{Binding MainViewModel, Source={StaticResource ViewModelLocator}}"
+    WindowStyle="None">
+    <shell:Window.Resources>
+        <converters:ConstraintToIconConverter x:Key="ConstraintToIconConverter" />
+        <converters:IconConverter x:Key="IconConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:BooleanToVisibilityConverter
+            x:Key="BooleanToHiddenConverter"
+            False="Hidden"
+            True="Visible" />
+        <converters:DataTypeToIconConverter x:Key="DataTypeToIconConverter" />
+    </shell:Window.Resources>
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="{Binding ActualHeight, ElementName=titlebar}" />
+    </shell:WindowChrome.WindowChrome>
+    <intr:Interaction.Triggers>
+        <intr:EventTrigger EventName="Loaded">
+            <intr:InvokeCommandAction Command="{Binding LoadLayoutCommand}" CommandParameter="{Binding ., ElementName=dockManager}" />
+        </intr:EventTrigger>
+        <intr:EventTrigger EventName="Unloaded">
+            <intr:InvokeCommandAction Command="{Binding SaveLayoutCommand}" CommandParameter="{Binding ., ElementName=dockManager}" />
+        </intr:EventTrigger>
+        <intr:EventTrigger EventName="ContentRendered">
+            <intr:InvokeCommandAction Command="{Binding DisplayChangeLogCommand}" />
+        </intr:EventTrigger>
+    </intr:Interaction.Triggers>
+    <shell:Border BorderBrush="{StaticResource SqualrColorBlue}" BorderThickness="1">
+        <shell:Grid>
+            <shell:Grid.RowDefinitions>
+                <!--  Title Bar Row  -->
+                <shell:RowDefinition Height="Auto" />
+                <!--  Menu Bar Row  -->
+                <shell:RowDefinition Height="Auto" />
+                <!--  Button Menu Bar Row  -->
+                <shell:RowDefinition Height="Auto" />
+                <!--  Docking Panel Row  -->
+                <shell:RowDefinition Height="*" />
+                <!--  Status Bar Row  -->
+                <shell:RowDefinition Height="Auto" />
+            </shell:Grid.RowDefinitions>
+
+            <!--  Title Bar  -->
+            <shell:Grid
+                x:Name="titlebar"
+                Grid.Row="0"
+                Background="{StaticResource SqualrColorFrame}">
+                <shell:Grid.ColumnDefinitions>
+                    <!--  Title Text Column  -->
+                    <shell:ColumnDefinition />
+                    <!--  Buttons  -->
+                    <shell:ColumnDefinition Width="Auto" />
+
+                </shell:Grid.ColumnDefinitions>
+                <shell:Grid Grid.Column="0">
+
+                    <shell:Grid.ColumnDefinitions>
+                        <shell:ColumnDefinition Width="Auto" />
+                        <shell:ColumnDefinition Width="Auto" />
+                        <shell:ColumnDefinition Width="Auto" />
+                        <shell:ColumnDefinition Width="Auto" />
+                        <shell:ColumnDefinition Width="Auto" />
+                    </shell:Grid.ColumnDefinitions>
+                    <shell:Image
+                        Grid.Column="0"
+                        Width="24"
+                        Height="24"
+                        Margin="4"
+                        Source="{x:Static content:Images.SqualrDev}" />
+                    <shell:TextBlock
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Foreground="{StaticResource SqualrColorWhite}"
+                        Text="Slicer" />
+                </shell:Grid>
+                <shell:Menu
+                    Grid.Column="1"
+                    VerticalAlignment="Stretch"
+                    Background="Transparent">
+                    <shell:MenuItem
+                        Height="24"
+                        Command="{Binding MinimizeCommand}"
+                        CommandParameter="{Binding ElementName=SqualrWindow}"
+                        ToolTip="Minimize"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <shell:MenuItem.Header>
+                            <shell:Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.Decreased}" />
+                        </shell:MenuItem.Header>
+                    </shell:MenuItem>
+                    <shell:MenuItem
+                        Height="24"
+                        Command="{Binding MaximizeRestoreCommand}"
+                        CommandParameter="{Binding ElementName=SqualrWindow}"
+                        ToolTip="Maximize/Restore"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <shell:MenuItem.Header>
+                            <shell:Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.Maximize}" />
+                        </shell:MenuItem.Header>
+                    </shell:MenuItem>
+                    <shell:MenuItem
+                        Height="24"
+                        Command="{Binding CloseCommand}"
+                        CommandParameter="{Binding ElementName=SqualrWindow}"
+                        ToolTip="Close"
+                        WindowChrome.IsHitTestVisibleInChrome="True">
+                        <shell:MenuItem.Header>
+                            <shell:Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.X}" />
+                        </shell:MenuItem.Header>
+                    </shell:MenuItem>
+                </shell:Menu>
+            </shell:Grid>
+
+            <!--  Menu Bar  -->
+            <shell:Grid Grid.Row="1">
+                <shell:Menu
+                    Background="{StaticResource SqualrColorFrame}"
+                    BorderBrush="{StaticResource SqualrColorWhite}"
+                    Foreground="{StaticResource SqualrColorWhite}">
+                    <!--  File Header  -->
+                    <shell:MenuItem
+                        BorderThickness="0"
+                        DataContext="{Binding Source={StaticResource ViewModelLocator}}"
+                        Header="File">
+                        <shell:MenuItem
+                            BorderThickness="0"
+                            Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}"
+                            Header="Select Project"
+                             />
+                        <shell:MenuItem
+                            BorderThickness="0"
+                            Command="{Binding MainViewModel.CloseCommand}"
+                            CommandParameter="{Binding ElementName=SqualrWindow}"
+                            Header="Exit"
+                             />
+                    </shell:MenuItem>
+
+                    <!--  Edit Header  -->
+                    <shell:MenuItem DataContext="{Binding Source={StaticResource ViewModelLocator}}" Header="Edit">
+                        <shell:MenuItem
+                            Header="Settings"
+                            IsCheckable="True"
+                            IsChecked="{Binding SettingsViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                    </shell:MenuItem>
+
+                    <!--  Layout Header  -->
+                    <shell:MenuItem DataContext="{Binding Source={StaticResource ViewModelLocator}}" Header="Layout">
+                        <shell:MenuItem
+                            Command="{Binding MainViewModel.ResetLayoutCommand}"
+                            CommandParameter="{Binding ., ElementName=dockManager}"
+                            Header="Reset Layout"
+                             />
+                    </shell:MenuItem>
+
+                    <!--  Windows Header  -->
+                    <shell:MenuItem DataContext="{Binding Source={StaticResource ViewModelLocator}}" Header="Windows">
+                        <shell:MenuItem
+                            Header="Process Selector"
+                            IsCheckable="True"
+                            IsChecked="{Binding ProcessSelectorViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Project Explorer"
+                            IsCheckable="True"
+                            IsChecked="{Binding ProjectExplorerViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Property Viewer"
+                            IsCheckable="True"
+                            IsChecked="{Binding PropertyViewerViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Output"
+                            IsCheckable="True"
+                            IsChecked="{Binding OutputViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Scan Results"
+                            IsCheckable="True"
+                            IsChecked="{Binding ScanResultsViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Pointer Scan Results"
+                            IsCheckable="True"
+                            IsChecked="{Binding PointerScanResultsViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Snapshot Manager"
+                            IsCheckable="True"
+                            IsChecked="{Binding SnapshotManagerViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header=".Net Explorer"
+                            IsCheckable="True"
+                            IsChecked="{Binding DotNetExplorerViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                    </shell:MenuItem>
+
+                    <!--  Scans Header  -->
+                    <shell:MenuItem DataContext="{Binding Source={StaticResource ViewModelLocator}}" Header="Scans">
+                        <shell:MenuItem
+                            Header="Change Counter"
+                            IsCheckable="True"
+                            IsChecked="{Binding ChangeCounterViewModel.IsVisible, Mode=TwoWay}"
+                            
+                            Visibility="Collapsed" />
+                        <shell:MenuItem
+                            Header="Input Correlator"
+                            IsCheckable="True"
+                            IsChecked="{Binding InputCorrelatorViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Label Thresholder"
+                            IsCheckable="True"
+                            IsChecked="{Binding LabelThresholderViewModel.IsVisible, Mode=TwoWay}"
+                            
+                            Visibility="Collapsed" />
+                        <shell:Separator />
+                        <shell:MenuItem
+                            Header="Pointer Scanner"
+                            IsCheckable="True"
+                            IsChecked="{Binding PointerScannerViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                    </shell:MenuItem>
+
+                    <!--  Debugger  -->
+                    <shell:MenuItem DataContext="{Binding Source={StaticResource ViewModelLocator}}" Header="Debugger">
+                        <shell:MenuItem
+                            Header="Disassembly"
+                            IsCheckable="True"
+                            IsChecked="{Binding DisassemblyViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                        <shell:MenuItem
+                            Header="Code Tracer"
+                            IsCheckable="True"
+                            IsChecked="{Binding CodeTracerViewModel.IsVisible, Mode=TwoWay}"
+                             />
+                    </shell:MenuItem>
+                </shell:Menu>
+            </shell:Grid>
+
+            <!--  Button Menu Bar  -->
+            <shell:WrapPanel Grid.Row="2" Background="{StaticResource SqualrColorFrame}">
+                <shell:Menu
+                    Padding="4"
+                    Background="Transparent"
+                    DataContext="{Binding Source={StaticResource ViewModelLocator}}">
+                    <shell:MenuItem Command="{Binding ProcessSelectorViewModel.Show}" ToolTip="Select a Target Process">
+                        <shell:MenuItem.Header>
+                            <shell:Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.SelectProcess}" />
+                        </shell:MenuItem.Header>
+                    </shell:MenuItem>
+                    <shell:Separator Style="{DynamicResource VerticalSeparator}" />
+                    <shell:MenuItem Command="{Binding ProjectExplorerViewModel.SelectProjectCommand}" ToolTip="Select Project">
+                        <shell:MenuItem.Header>
+                            <shell:Image
+                                Width="16"
+                                Height="16"
+                                Source="{x:Static content:Images.Open}" />
+                        </shell:MenuItem.Header>
+                    </shell:MenuItem>
+                    <shell:Separator Style="{DynamicResource VerticalSeparator}" />
+                </shell:Menu>
+                <shell:ComboBox
+                    Width="196"
+                    Height="24"
+                    Background="{StaticResource SqualrColorFrame}"
+                    ItemsSource="{Binding ProcessSelectorViewModel.WindowedProcessList, Source={StaticResource ViewModelLocator}}"
+                    SelectedItem="{Binding ProcessSelectorViewModel.SelectedProcess, Source={StaticResource ViewModelLocator}, Mode=TwoWay}">
+                    <shell:ComboBox.ItemTemplate>
+                        <shell:DataTemplate>
+                            <shell:Grid>
+                                <shell:Grid.ColumnDefinitions>
+                                    <shell:ColumnDefinition Width="Auto" />
+                                    <shell:ColumnDefinition />
+                                </shell:Grid.ColumnDefinitions>
+                                <shell:Image
+                                    Grid.Column="0"
+                                    Width="16"
+                                    Height="16"
+                                    Margin="0,0,6,0"
+                                    Source="{Binding Path=., Converter={StaticResource IconConverter}}" />
+                                <shell:TextBlock
+                                    Grid.Column="1"
+                                    Foreground="{StaticResource SqualrColorWhite}"
+                                    Text="{Binding Path=ProcessName}" />
+                            </shell:Grid>
+                        </shell:DataTemplate>
+                    </shell:ComboBox.ItemTemplate>
+                </shell:ComboBox>
+                <shell:Grid Grid.Row="0" Margin="32,0,0,0">
+                    <shell:Grid.ColumnDefinitions>
+                        <shell:ColumnDefinition />
+                        <shell:ColumnDefinition Width="Auto" />
+                    </shell:Grid.ColumnDefinitions>
+                    <shell:Border
+                        Background="Transparent"
+                        BorderBrush="{StaticResource SqualrColorWhite}"
+                        BorderThickness="0">
+                        <shell:WrapPanel>
+                            <shell:Menu
+                                Grid.Column="0"
+                                Padding="4"
+                                Background="{StaticResource SqualrColorFrame}"
+                                BorderBrush="{StaticResource SqualrColorWhite}"
+                                DataContext="{Binding ScanResultsViewModel, Source={StaticResource ViewModelLocator}}"
+                                Foreground="{StaticResource SqualrColorWhite}">
+                                <shell:MenuItem Command="{Binding SnapshotManagerViewModel.ClearSnapshotsCommand, Source={StaticResource ViewModelLocator}}" ToolTip="New Scan">
+                                    <shell:MenuItem.Header>
+                                        <shell:Image
+                                            Width="16"
+                                            Height="16"
+                                            Source="{x:Static content:Images.New}" />
+                                    </shell:MenuItem.Header>
+                                </shell:MenuItem>
+                                <shell:Separator Style="{DynamicResource VerticalSeparator}" />
+                                <shell:MenuItem ToolTip="Scan Type">
+                                    <shell:MenuItem.Header>
+                                        <shell:StackPanel Orientation="Horizontal">
+                                            <shell:Image
+                                                Width="16"
+                                                Height="16"
+                                                Source="{Binding ActiveType, Converter={StaticResource DataTypeToIconConverter}}" />
+                                            <shell:TextBlock
+                                                Padding="4,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Foreground="{StaticResource SqualrColorWhite}"
+                                                Text="{Binding ScanResultsViewModel.ActiveTypeName, Source={StaticResource ViewModelLocator}}" />
+                                            <shell:Grid
+                                                x:Name="ArrowGlyph"
+                                                Grid.Column="1"
+                                                Margin="4,3,4,3"
+                                                IsHitTestVisible="False">
+                                                <shell:Path
+                                                    x:Name="Arrow2"
+                                                    Width="7"
+                                                    Height="4"
+                                                    Data="M 0,1 C0,1 0,0 0,0 0,0 3,0 3,0 3,0 3,1 3,1 3,1 4,1 4,1 4,1 4,0 4,0 4,0 7,0 7,0 7,0 7,1 7,1 7,1 6,1 6,1 6,1 6,2 6,2 6,2 5,2 5,2 5,2 5,3 5,3 5,3 4,3 4,3 4,3 4,4 4,4 4,4 3,4 3,4 3,4 3,3 3,3 3,3 2,3 2,3 2,3 2,2 2,2 2,2 1,2 1,2 1,2 1,1 1,1 1,1 0,1 0,1 z"
+                                                    Fill="White" />
+                                            </shell:Grid>
+                                        </shell:StackPanel>
+                                    </shell:MenuItem.Header>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.SByte}"
+                                        Style="{Binding .}"
+                                        ToolTip="1 Byte Signed Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.SByte}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="SByte" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.Int16}"
+                                        Style="{Binding .}"
+                                        ToolTip="2 Byte Signed Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.Int16}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int16" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.Int32}"
+                                        Style="{Binding .}"
+                                        ToolTip="4 Byte Signed Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.Int32}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int32" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.Int64}"
+                                        Style="{Binding .}"
+                                        ToolTip="8 Byte Signed Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.Int64}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Int64" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.Byte}"
+                                        Style="{Binding .}"
+                                        ToolTip="1 Byte Unsigned Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.Byte}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Byte" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.UInt16}"
+                                        Style="{Binding .}"
+                                        ToolTip="2 Byte Unsigned Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.UInt16}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="UInt16" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.UInt32}"
+                                        Style="{Binding .}"
+                                        ToolTip="4 Byte Unsigned Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.UInt32}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="UInt32" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.UInt64}"
+                                        Style="{Binding .}"
+                                        ToolTip="8 Byte Unsigned Integer">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.UInt64}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="UInt64" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.Single}"
+                                        Style="{Binding .}"
+                                        ToolTip="Single Precision Floating Point Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.Single}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Single" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding ScanResultsViewModel.ChangeTypeCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{x:Static types:DataTypeBase.Double}"
+                                        Style="{Binding .}"
+                                        ToolTip="Double Precision Floating Point Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{Binding ConverterParameter={x:Static types:DataTypeBase.Double}, Converter={StaticResource DataTypeToIconConverter}}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Background="Transparent"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Double" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                </shell:MenuItem>
+                                <shell:Separator Style="{DynamicResource VerticalSeparator}" />
+                                <shell:MenuItem Command="{Binding ValueCollectorViewModel.CollectValuesCommand, Source={StaticResource ViewModelLocator}}" ToolTip="Collect Values">
+                                    <shell:MenuItem.Header>
+                                        <shell:Image
+                                            Width="16"
+                                            Height="16"
+                                            Source="{x:Static content:Images.CollectValues}" />
+                                    </shell:MenuItem.Header>
+                                </shell:MenuItem>
+                            </shell:Menu>
+                            <shell:Menu
+                                VerticalAlignment="Center"
+                                Background="{StaticResource SqualrColorFrame}"
+                                BorderBrush="{StaticResource SqualrColorWhite}"
+                                DataContext="{Binding ManualScannerViewModel, Source={StaticResource ViewModelLocator}}"
+                                Foreground="{StaticResource SqualrColorWhite}">
+                                <shell:MenuItem ToolTip="Scan Constraint">
+                                    <shell:MenuItem.Header>
+                                        <shell:StackPanel Orientation="Horizontal">
+                                            <shell:Image
+                                                Width="16"
+                                                Height="16"
+                                                Source="{Binding Path=ActiveConstraint.Constraint, Converter={StaticResource ConstraintToIconConverter}}" />
+                                            <shell:Grid
+                                                x:Name="arrowGlyph"
+                                                Grid.Column="1"
+                                                Margin="4,3,4,3"
+                                                IsHitTestVisible="False">
+                                                <shell:Path
+                                                    x:Name="Arrow"
+                                                    Width="7"
+                                                    Height="4"
+                                                    Data="M 0,1 C0,1 0,0 0,0 0,0 3,0 3,0 3,0 3,1 3,1 3,1 4,1 4,1 4,1 4,0 4,0 4,0 7,0 7,0 7,0 7,1 7,1 7,1 6,1 6,1 6,1 6,2 6,2 6,2 5,2 5,2 5,2 5,3 5,3 5,3 4,3 4,3 4,3 4,4 4,4 4,4 3,4 3,4 3,4 3,3 3,3 3,3 2,3 2,3 2,3 2,2 2,2 2,2 1,2 1,2 1,2 1,1 1,1 1,1 0,1 0,1 z"
+                                                    Fill="White" />
+                                            </shell:Grid>
+                                        </shell:StackPanel>
+                                    </shell:MenuItem.Header>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectChangedCommand}"
+                                        
+                                        ToolTip="Changed Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.Changed}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Changed" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectUnchangedCommand}"
+                                        
+                                        ToolTip="Unchanged Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.Unchanged}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Unchanged" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectIncreasedCommand}"
+                                        
+                                        ToolTip="Increased Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.Increased}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Increased" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectDecreasedCommand}"
+                                        
+                                        ToolTip="Decreased Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.Decreased}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Decreased" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectEqualCommand}"
+                                        
+                                        ToolTip="Equal to Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.Equal}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Equal" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectNotEqualCommand}"
+                                        
+                                        ToolTip="Not Equal to Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.NotEqual}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Not Equal To" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectIncreasedByXCommand}"
+                                        
+                                        ToolTip="Increased by Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.PlusX}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Increased By" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectDecreasedByXCommand}"
+                                        
+                                        ToolTip="Decreased by Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.MinusX}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Decreased By" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectGreaterThanCommand}"
+                                        
+                                        ToolTip="Greater Than Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.GreaterThan}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Greater Than" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectGreaterThanOrEqualCommand}"
+                                        
+                                        ToolTip="Greater Than or Equal to Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.GreaterThanOrEqual}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Greater Than Or Equal To" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectLessThanCommand}"
+                                        
+                                        ToolTip="Less Than Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.LessThan}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Less Than" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                    <shell:MenuItem
+                                        Command="{Binding SelectLessThanOrEqualCommand}"
+                                        
+                                        ToolTip="Less Than or Equal to Value">
+                                        <shell:MenuItem.Header>
+                                            <shell:WrapPanel Width="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ActualWidth}">
+                                                <shell:Image
+                                                    Width="16"
+                                                    Height="16"
+                                                    Source="{x:Static content:Images.LessThanOrEqual}" />
+                                                <shell:TextBlock
+                                                    Padding="4,0,0,0"
+                                                    Foreground="{StaticResource SqualrColorWhite}"
+                                                    Text="Less Than Or Equal To" />
+                                            </shell:WrapPanel>
+                                        </shell:MenuItem.Header>
+                                    </shell:MenuItem>
+                                </shell:MenuItem>
+                            </shell:Menu>
+                            <shell:Border
+                                Margin="0,2,0,2"
+                                VerticalAlignment="Center"
+                                Background="{StaticResource SqualrColorGray27}"
+                                BorderBrush="{StaticResource SqualrColorGray35}"
+                                BorderThickness="1"
+                                DataContext="{Binding ManualScannerViewModel, Source={StaticResource ViewModelLocator}}"
+                                Visibility="{Binding IsActiveScanConstraintValued, Converter={StaticResource BooleanToHiddenConverter}}">
+                                <Controls:HexDecBox
+                                    x:Name="ValueHexDecBox"
+                                    Width="196"
+                                    Height="20"
+                                    Background="{StaticResource SqualrColorGray27}"
+                                    BorderBrush="{StaticResource SqualrColorGray35}" />
+                                <shell:Border.InputBindings>
+                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
+                                </shell:Border.InputBindings>
+                            </shell:Border>
+                            <shell:MenuItem
+                                Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}"
+                                ToolTip="Start Scan">
+                                <shell:MenuItem.InputBindings>
+                                    <shell:KeyBinding Command="{Binding ManualScannerViewModel.StartScanCommand, Source={StaticResource ViewModelLocator}}" Gesture="Enter" />
+                                </shell:MenuItem.InputBindings>
+                                <shell:MenuItem.Header>
+                                    <shell:Image
+                                        Width="16"
+                                        Height="16"
+                                        Source="{x:Static content:Images.RightArrow}" />
+                                </shell:MenuItem.Header>
+                            </shell:MenuItem>
+                        </shell:WrapPanel>
+                    </shell:Border>
+                </shell:Grid>
+            </shell:WrapPanel>
+
+            <!--  Docking Panel  -->
+            <avalonDock:DockingManager
+                x:Name="dockManager"
+                Grid.Row="3"
+                AnchorablesSource="{Binding DockingViewModel.Tools, Source={StaticResource ViewModelLocator}}"
+                Background="{StaticResource SqualrColorFrame}"
+			    Theme="{Binding DockingViewModel.SelectedTheme.Item2, Source={StaticResource ViewModelLocator}}">
+                <!--  All Dockable Windows  -->
+                <avalonDock:DockingManager.LayoutItemTemplateSelector>
+                    <view:ViewTemplateSelector>
+                        <!--  Error Message When Missing Data Template (KEEP AS FIRST IN THIS LIST)  -->
+                        <view:ViewTemplateSelector.DataTemplateErrorViewTemplate>
+                            <shell:DataTemplate>
+                                <view:DataTemplateError />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.DataTemplateErrorViewTemplate>
+                        <!--  Project Explorer  -->
+                        <view:ViewTemplateSelector.ProjectExplorerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:ProjectExplorer />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.ProjectExplorerViewTemplate>
+                        <!--  Change Counter  -->
+                        <view:ViewTemplateSelector.ChangeCounterViewTemplate>
+                            <shell:DataTemplate>
+                                <view:ChangeCounter />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.ChangeCounterViewTemplate>
+                        <!--  Input Correlator  -->
+                        <view:ViewTemplateSelector.InputCorrelatorViewTemplate>
+                            <shell:DataTemplate>
+                                <view:InputCorrelator />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.InputCorrelatorViewTemplate>
+                        <!--  Pointer Scanner  -->
+                        <view:ViewTemplateSelector.PointerScannerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:PointerScanner />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.PointerScannerViewTemplate>
+                        <!--  Snapshot Manager  -->
+                        <view:ViewTemplateSelector.SnapshotManagerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:SnapshotManager />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.SnapshotManagerViewTemplate>
+                        <!--  Scan Results  -->
+                        <view:ViewTemplateSelector.ScanResultsViewTemplate>
+                            <shell:DataTemplate>
+                                <view:ScanResults />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.ScanResultsViewTemplate>
+                        <!--  Pointer Scan Results  -->
+                        <view:ViewTemplateSelector.PointerScanResultsViewTemplate>
+                            <shell:DataTemplate>
+                                <view:PointerScanResults />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.PointerScanResultsViewTemplate>
+                        <!--  .Net Explorer  -->
+                        <view:ViewTemplateSelector.DotNetExplorerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:DotNetExplorer />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.DotNetExplorerViewTemplate>
+                        <!--  Settings  -->
+                        <view:ViewTemplateSelector.SettingsViewTemplate>
+                            <shell:DataTemplate>
+                                <view:Settings />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.SettingsViewTemplate>
+                        <!--  Process Selector  -->
+                        <view:ViewTemplateSelector.ProcessSelectorViewTemplate>
+                            <shell:DataTemplate>
+                                <view:ProcessSelector />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.ProcessSelectorViewTemplate>
+                        <!--  Property Viewer  -->
+                        <view:ViewTemplateSelector.PropertyViewerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:PropertyViewer />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.PropertyViewerViewTemplate>
+                        <!--  Output  -->
+                        <view:ViewTemplateSelector.OutputViewTemplate>
+                            <shell:DataTemplate>
+                                <view:Output />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.OutputViewTemplate>
+                        <!--  Debugger  -->
+                        <view:ViewTemplateSelector.DisassemblyViewTemplate>
+                            <shell:DataTemplate>
+                                <view:Disassembly />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.DisassemblyViewTemplate>
+                        <!--  Code Tracer  -->
+                        <view:ViewTemplateSelector.CodeTracerViewTemplate>
+                            <shell:DataTemplate>
+                                <view:CodeTracer />
+                            </shell:DataTemplate>
+                        </view:ViewTemplateSelector.CodeTracerViewTemplate>
+                    </view:ViewTemplateSelector>
+                </avalonDock:DockingManager.LayoutItemTemplateSelector>
+
+                <!--  Container Style  -->
+                <avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+                    <docking:PanesStyleSelector>
+                        <!--  General Docking Tools Style  -->
+                        <docking:PanesStyleSelector.ToolStyle>
+                            <shell:Style TargetType="{x:Type layoutControls:LayoutAnchorableItem}">
+                                <shell:Setter Property="Title" Value="{Binding Model.Title}" />
+                                <shell:Setter Property="IconSource" Value="{Binding Model.IconSource}" />
+                                <shell:Setter Property="Visibility" Value="{Binding Model.IsVisible, Mode=TwoWay, Converter={StaticResource BooleanToHiddenConverter}}" />
+                                <shell:Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+                                <shell:Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
+                                <shell:Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}" />
+                            </shell:Style>
+                        </docking:PanesStyleSelector.ToolStyle>
+                    </docking:PanesStyleSelector>
+                </avalonDock:DockingManager.LayoutItemContainerStyleSelector>
+                <avalonDock:DockingManager.LayoutUpdateStrategy>
+                    <coreView:LayoutInitializer />
+                </avalonDock:DockingManager.LayoutUpdateStrategy>
+
+                <!--  Layout Style  -->
+                <layout:LayoutRoot>
+                    <!--  Docking Group for All Windows  -->
+                    <layout:LayoutPanel />
+                </layout:LayoutRoot>
+            </avalonDock:DockingManager>
+
+            <!--  Status Bar  -->
+            <shell:Border
+                Grid.Row="4"
+                Height="24"
+                Background="{StaticResource SqualrColorBlue}"
+                DataContext="{Binding TaskTrackerViewModel, Source={StaticResource ViewModelLocator}}">
+                <shell:Grid>
+                    <shell:ItemsControl HorizontalAlignment="Right" ItemsSource="{Binding Path=TrackedTasks}">
+                        <shell:ItemsControl.ItemTemplate>
+                            <shell:DataTemplate>
+                                <shell:WrapPanel VerticalAlignment="Center">
+                                    <shell:TextBlock
+                                        Padding="4,0,4,0"
+                                        VerticalAlignment="Center"
+                                        Foreground="{StaticResource SqualrColorWhite}"
+                                        Text="{Binding Path=Name}" />
+                                    <shell:Grid>
+                                        <shell:ProgressBar Width="96" Value="{Binding Path=Progress, Mode=OneWay}" />
+                                        <shell:TextBlock
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Foreground="{StaticResource SqualrColorRed}"
+                                            Text="(Canceling)"
+                                            Visibility="{Binding Path=IsCanceled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    </shell:Grid>
+                                    <shell:Button
+                                        VerticalAlignment="Center"
+                                        Background="Transparent"
+                                        Command="{Binding TaskTrackerViewModel.CancelTaskCommand, Source={StaticResource ViewModelLocator}}"
+                                        CommandParameter="{Binding .}"
+                                        ToolTip="Cancel Action">
+                                        <shell:Image
+                                            Width="16"
+                                            Height="16"
+                                            Source="{x:Static content:Images.Cancel}" />
+                                    </shell:Button>
+                                </shell:WrapPanel>
+                            </shell:DataTemplate>
+                        </shell:ItemsControl.ItemTemplate>
+                        <shell:ItemsControl.ItemsPanel>
+                            <shell:ItemsPanelTemplate>
+                                <shell:StackPanel Orientation="Horizontal" />
+                            </shell:ItemsPanelTemplate>
+                        </shell:ItemsControl.ItemsPanel>
+                    </shell:ItemsControl>
+                </shell:Grid>
+            </shell:Border>
+        </shell:Grid>
+    </shell:Border>
+</shell:Window>
